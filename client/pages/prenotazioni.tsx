@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,30 +10,89 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Clock, MapPin } from "lucide-react"
 import { format } from "date-fns"
 import { it } from "date-fns/locale"
+import AuthForm from '@/components/AuthForm'
 
 const PrenotazioniPage: React.FC = () => {
-  const [isSubscribed, setIsSubscribed] = useState<boolean>(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isSubscribed, setIsSubscribed] = useState(false)
   const [date, setDate] = useState<Date>()
   const [time, setTime] = useState<string>()
   const [pickup, setPickup] = useState<string>('')
   const [dropoff, setDropoff] = useState<string>('')
   const [passengers, setPassengers] = useState<string>('')
+  const router = useRouter()
 
   useEffect(() => {
-    // Simula il controllo dell'abbonamento
-    // In un'applicazione reale, questo dovrebbe essere fatto tramite un'API o un sistema di autenticazione
-    const checkSubscription = async () => {
-      // Simula una chiamata API
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setIsSubscribed(true) // Per ora, impostiamo sempre a true per simulare un utente abbonato
+    const token = localStorage.getItem('token')
+    if (token) {
+      setIsAuthenticated(true)
+      checkSubscription(token)
     }
-    checkSubscription()
   }, [])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const checkSubscription = async (token: string) => {
+    try {
+      const response = await fetch('/api/subscriptions/check', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      if (response.ok) {
+        setIsSubscribed(true)
+      }
+    } catch (error) {
+      console.error('Errore durante il controllo dell\'abbonamento', error)
+    }
+  }
+
+  const handleAuth = async (data: { name?: string; email: string; password: string }) => {
+    const endpoint = data.name ? '/api/auth/register' : '/api/auth/login'
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      if (response.ok) {
+        const { token } = await response.json()
+        localStorage.setItem('token', token)
+        setIsAuthenticated(true)
+        checkSubscription(token)
+      }
+    } catch (error) {
+      console.error('Errore durante l\'autenticazione', error)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Qui andrà la logica per gestire la prenotazione
-    console.log({ date, time, pickup, dropoff, passengers })
+    const token = localStorage.getItem('token')
+    if (!token) return
+
+    try {
+      const response = await fetch('/api/bookings/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ date, time, pickup, dropoff, passengers })
+      })
+      if (response.ok) {
+        alert('Prenotazione confermata!')
+        router.push('/dashboard')
+      }
+    } catch (error) {
+      console.error('Errore durante la prenotazione', error)
+    }
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
+        <AuthForm onSubmit={handleAuth} isLogin={true} />
+      </div>
+    )
   }
 
   if (!isSubscribed) {
@@ -49,7 +109,7 @@ const PrenotazioniPage: React.FC = () => {
             <p className="text-white mb-4">
               Per favore, sottoscrivi un abbonamento per poter prenotare le tue corse.
             </p>
-            <Button className="w-full bg-[#FF7F27] hover:bg-[#FF7F27]/90 text-white">
+            <Button className="w-full bg-[#FF7F27] hover:bg-[#FF7F27]/90 text-white" onClick={() => router.push('/abbonamenti')}>
               Vai agli Abbonamenti
             </Button>
           </CardContent>
