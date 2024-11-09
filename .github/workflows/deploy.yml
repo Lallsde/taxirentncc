@@ -13,42 +13,41 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Setup Node.js
+    - name: Use Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: './client/package-lock.json'
 
     - name: Install dependencies
       run: |
         cd client
-        npm ci || npm install
+        npm ci
 
-    - name: Create package.json if not exists
-      run: |
-        if [ ! -f "client/package.json" ]; then
-          cd client
-          npm init -y
-          npm install next react react-dom @types/react @types/node typescript
-          npm install @stripe/stripe-js @stripe/react-stripe-js stripe
-          npm install @radix-ui/react-icons lucide-react
-          npm install tailwindcss postcss autoprefixer
-          npm install @types/stripe
-        fi
-
-    - name: Build application
+    - name: Lint
       run: |
         cd client
-        npm run build || true
+        npm run lint
+
+    - name: Build
+      run: |
+        cd client
+        npm run build
+      env:
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+
+    - name: Test
+      run: |
+        cd client
+        npm test || true
+
+    - name: Deploy to production
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: |
+        cd client
+        # Add your deployment commands here, for example:
+        # npm run deploy
       env:
         NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
         STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-
-    - name: Check build output
-      run: |
-        cd client
-        if [ -d ".next" ]; then
-          echo "Build completed successfully"
-        else
-          echo "Build failed"
-          exit 1
-        fi
