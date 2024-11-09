@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Calendar as CalendarIcon, Check, ChevronRight, Clock, MapPin } from "lucide-react"
 import Image from "next/image"
-
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,259 +13,153 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format } from "date-fns"
 import { it } from "date-fns/locale"
 
-// Steps component for booking process
-const Steps = ({ currentStep, children }: { currentStep: number; children: React.ReactNode }) => {
-return (
-  <div className="flex justify-between mb-8">
-    {React.Children.map(children, (child, index) => {
-      if (React.isValidElement(child)) {
-        return React.cloneElement(child as React.ReactElement<any>, {
-          isActive: index === currentStep,
-          isCompleted: index < currentStep,
-          stepNumber: index + 1,
-        })
-      }
-      return child
-    })}
-  </div>
-)
-}
+export default function BookingPage() {
+  const [currentStep, setCurrentStep] = useState(1)
+  const [date, setDate] = useState<Date>()
+  const [pickupLocation, setPickupLocation] = useState("")
+  const [dropoffLocation, setDropoffLocation] = useState("")
+  const [passengers, setPassengers] = useState("1")
 
-const Step = ({ children, isActive, isCompleted, stepNumber, icon }: { 
-children: React.ReactNode
-isActive?: boolean
-isCompleted?: boolean
-stepNumber: number
-icon: React.ReactNode
-}) => {
-return (
-  <div className={`flex items-center ${isActive ? 'text-[#FF7F27]' : 'text-white'}`}>
-    <div className={`
-      flex items-center justify-center w-8 h-8 rounded-full mr-2
-      ${isCompleted ? 'bg-[#FF7F27]' : 'bg-zinc-700'}
-      ${isActive ? 'border-2 border-[#FF7F27]' : ''}
-    `}>
-      {isCompleted ? <Check className="w-5 h-5 text-white" /> : icon}
-    </div>
-    <span>{children}</span>
-  </div>
-)
-}
+  const handleNextStep = () => {
+    if (currentStep < 3) {
+      setCurrentStep(currentStep + 1)
+    }
+  }
 
-export default function MainPage() {
-const [selectedPlan, setSelectedPlan] = useState("")
-const [currentStep, setCurrentStep] = useState(0)
-const [date, setDate] = useState<Date>()
+  const handlePreviousStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
 
-const plans = [
-  {
-    name: "Base",
-    price: "33",
-    description: "1 corsa al giorno",
-    features: ["1 corsa giornaliera", "Valido nell'area di Monopoli", "Prenotazione facile"],
-  },
-  {
-    name: "Premium",
-    price: "55",
-    description: "2 corse al giorno",
-    features: ["2 corse giornaliere", "Valido nell'area di Monopoli", "Prenotazione prioritaria", "Scelta dell'orario preferito"],
-  },
-  {
-    name: "Gold",
-    price: "99",
-    description: "4 corse al giorno",
-    features: [
-      "4 corse giornaliere",
-      "Valido nell'area di Monopoli",
-      "Prenotazione prioritaria",
-      "Scelta dell'orario preferito",
-      "Servizio clienti dedicato",
-    ],
-  },
-]
-
-return (
-  <div className="min-h-screen bg-black">
-    {/* Hero Section */}
-    <div className="relative h-[500px] flex items-center justify-center bg-gradient-to-b from-[#FF7F27] to-black">
-      <div className="absolute inset-0 bg-black/40" />
-      <div className="relative z-10 text-center">
-        <div className="mb-8 flex justify-center">
-          <Image
-            src="/images/logo.png"
-            alt="TaxiRentNcc Logo"
-            width={200}
-            height={200}
-            className="rounded-lg"
-          />
-        </div>
-        <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
-          TaxiRentNcc
-        </h1>
-        <p className="text-xl text-white/90 max-w-2xl mx-auto px-4">
-          Viaggia smart con il nostro servizio di linea condiviso. 
-          Abbonati e risparmia sui tuoi spostamenti quotidiani nell'area di Monopoli.
-        </p>
-      </div>
-    </div>
-
-    {/* Subscription Section */}
-    <div className="container mx-auto px-4 py-12">
-      <h2 className="text-3xl font-bold text-center mb-2 text-[#FF7F27]">I Nostri Abbonamenti</h2>
-      <p className="text-center mb-4 text-white">
-        Scegli il piano perfetto per le tue esigenze di mobilità a Monopoli
-      </p>
-      <p className="text-center mb-8 text-white">
-        Il nostro servizio di linea ti permette di viaggiare comodamente insieme ad altri ospiti,
-        utilizzando i mezzi esclusivi di TaxiRentNcc. Risparmia e contribuisci a ridurre il traffico!
-      </p>
-
-      <Steps currentStep={currentStep}>
-        <Step icon={<ChevronRight />}>Scegli il tuo piano</Step>
-        <Step icon={<ChevronRight />}>Prenota la tua corsa</Step>
-        <Step icon={<ChevronRight />}>Conferma</Step>
-      </Steps>
-
-      {currentStep === 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {plans.map((plan) => (
-            <Card key={plan.name} className="bg-zinc-900 border-zinc-800">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-[#FF7F27]">{plan.name}</CardTitle>
-                <CardDescription className="text-white">{plan.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-4xl font-bold mb-4 text-white">
-                  €{plan.price} <span className="text-lg font-normal text-zinc-400">/mese</span>
-                </p>
-                <ul className="space-y-2">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-center text-white">
-                      <Check className="h-5 w-5 text-[#FF7F27] mr-2" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  className="w-full bg-[#FF7F27] hover:bg-[#FF7F27]/90"
-                  onClick={() => {
-                    setSelectedPlan(plan.name)
-                    setCurrentStep(1)
-                  }}
-                >
-                  Scegli {plan.name}
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      ) : currentStep === 1 ? (
-        <Card className="bg-zinc-900 border-zinc-800">
+  return (
+    <div className="min-h-screen bg-black py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md mx-auto">
+        <Card className="bg-black border-orange-500">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-[#FF7F27]">Prenota la tua corsa</CardTitle>
-            <CardDescription className="text-white">
-              Abbonamento selezionato: {selectedPlan}
-            </CardDescription>
+            <CardTitle className="text-orange-500">Prenota il tuo viaggio</CardTitle>
+            <CardDescription className="text-white">Compila i dettagli per prenotare il tuo taxi</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-white flex items-center">
-                  <CalendarIcon className="mr-2 h-4 w-4" /> Data e Ora
-                </Label>
-                <div className="grid gap-2">
+          <CardContent className="space-y-6 pt-6">
+            {/* Step 1: Date and Time Selection */}
+            {currentStep === 1 && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-white">Data del viaggio</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
-                        className="bg-zinc-800 text-white border-zinc-700 w-full justify-start text-left font-normal"
+                        className="w-full justify-start text-left font-normal bg-black border-orange-500 text-white hover:bg-orange-900"
                       >
+                        <CalendarIcon className="mr-2 h-4 w-4 text-orange-500" />
                         {date ? format(date, "PPP", { locale: it }) : "Seleziona una data"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent className="bg-black border-orange-500">
                       <Calendar
                         mode="single"
                         selected={date}
                         onSelect={setDate}
-                        initialFocus
+                        locale={it}
+                        className="bg-black text-white"
                       />
                     </PopoverContent>
                   </Popover>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white">Orario preferito</Label>
                   <Select>
-                    <SelectTrigger className="bg-zinc-800 text-white border-zinc-700">
-                      <SelectValue placeholder="Seleziona orario" />
+                    <SelectTrigger className="bg-black border-orange-500 text-white">
+                      <SelectValue placeholder="Seleziona un orario" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="08:00">08:00</SelectItem>
-                      <SelectItem value="10:00">10:00</SelectItem>
-                      <SelectItem value="12:00">12:00</SelectItem>
-                      <SelectItem value="14:00">14:00</SelectItem>
-                      <SelectItem value="16:00">16:00</SelectItem>
-                      <SelectItem value="18:00">18:00</SelectItem>
+                    <SelectContent className="bg-black border-orange-500">
+                      <SelectItem value="morning" className="text-white">Mattina (6:00 - 12:00)</SelectItem>
+                      <SelectItem value="afternoon" className="text-white">Pomeriggio (12:00 - 18:00)</SelectItem>
+                      <SelectItem value="evening" className="text-white">Sera (18:00 - 24:00)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="pickup" className="text-white flex items-center">
-                <MapPin className="mr-2" /> Indirizzo di partenza
-              </Label>
-              <Input
-                id="pickup"
-                placeholder="Inserisci l'indirizzo di partenza"
-                className="bg-zinc-800 text-white border-zinc-700"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="dropoff" className="text-white flex items-center">
-                <MapPin className="mr-2" /> Indirizzo di arrivo
-              </Label>
-              <Input
-                id="dropoff"
-                placeholder="Inserisci l'indirizzo di arrivo"
-                className="bg-zinc-800 text-white border-zinc-700"
-              />
-            </div>
+            )}
+
+            {/* Step 2: Location Details */}
+            {currentStep === 2 && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-white">Punto di partenza</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      placeholder="Inserisci l'indirizzo di partenza"
+                      value={pickupLocation}
+                      onChange={(e) => setPickupLocation(e.target.value)}
+                      className="bg-black border-orange-500 text-white"
+                    />
+                    <Button size="icon" variant="ghost" className="text-orange-500 hover:text-orange-400 hover:bg-orange-900">
+                      <MapPin className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white">Destinazione</Label>
+                  <div className="flex space-x-2">
+                    <Input
+                      placeholder="Inserisci la destinazione"
+                      value={dropoffLocation}
+                      onChange={(e) => setDropoffLocation(e.target.value)}
+                      className="bg-black border-orange-500 text-white"
+                    />
+                    <Button size="icon" variant="ghost" className="text-orange-500 hover:text-orange-400 hover:bg-orange-900">
+                      <MapPin className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Passenger Details */}
+            {currentStep === 3 && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-white">Numero di passeggeri</Label>
+                  <Select value={passengers} onValueChange={setPassengers}>
+                    <SelectTrigger className="bg-black border-orange-500 text-white">
+                      <SelectValue placeholder="Seleziona il numero di passeggeri" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-black border-orange-500">
+                      <SelectItem value="1" className="text-white">1 passeggero</SelectItem>
+                      <SelectItem value="2" className="text-white">2 passeggeri</SelectItem>
+                      <SelectItem value="3" className="text-white">3 passeggeri</SelectItem>
+                      <SelectItem value="4" className="text-white">4 passeggeri</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white">Note aggiuntive</Label>
+                  <Input placeholder="Eventuali richieste speciali" className="bg-black border-orange-500 text-white" />
+                </div>
+              </div>
+            )}
           </CardContent>
-          <CardFooter>
-            <Button
-              className="w-full bg-[#FF7F27] hover:bg-[#FF7F27]/90"
-              onClick={() => setCurrentStep(2)}
+          <CardFooter className="flex justify-between">
+            {currentStep > 1 && (
+              <Button variant="outline" onClick={handlePreviousStep} className="bg-black border-orange-500 text-white hover:bg-orange-900">
+                Indietro
+              </Button>
+            )}
+            <Button 
+              className={`ml-auto bg-orange-500 text-white hover:bg-orange-600 ${currentStep === 1 ? 'w-full' : ''}`}
+              onClick={currentStep === 3 ? () => console.log("Booking submitted") : handleNextStep}
             >
-              Conferma Prenotazione
+              {currentStep === 3 ? "Prenota ora" : "Avanti"}
+              {currentStep !== 3 && <ChevronRight className="ml-2 h-4 w-4" />}
             </Button>
           </CardFooter>
         </Card>
-      ) : (
-        <Card className="bg-zinc-900 border-zinc-800">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-[#FF7F27]">Prenotazione Confermata</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-white text-lg">Grazie per aver prenotato con TaxiRentNcc!</p>
-            <p className="text-white mt-4">Riepilogo della tua prenotazione:</p>
-            <ul className="list-disc list-inside text-white mt-2">
-              <li>Piano: {selectedPlan}</li>
-              <li>Data: {date ? format(date, "PPP", { locale: it }) : ""}</li>
-              <li>Partenza: [Indirizzo di partenza]</li>
-              <li>Arrivo: [Indirizzo di arrivo]</li>
-            </ul>
-          </CardContent>
-          <CardFooter>
-            <Button
-              className="w-full bg-[#FF7F27] hover:bg-[#FF7F27]/90"
-              onClick={() => setCurrentStep(0)}
-            >
-              Nuova Prenotazione
-            </Button>
-          </CardFooter>
-        </Card>
-      )}
+      </div>
     </div>
-  </div>
-)
+  )
 }
