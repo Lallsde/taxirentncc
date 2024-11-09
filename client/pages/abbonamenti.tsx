@@ -19,6 +19,7 @@ export default function AbbonamentiPage() {
 
   const plans = [
     {
+      id: "base",
       name: "Base",
       price: "33",
       description: "1 corsa al giorno",
@@ -30,6 +31,7 @@ export default function AbbonamentiPage() {
       ],
     },
     {
+      id: "premium",
       name: "Premium",
       price: "55",
       description: "2 corse al giorno",
@@ -42,6 +44,7 @@ export default function AbbonamentiPage() {
       ],
     },
     {
+      id: "gold",
       name: "Gold",
       price: "99",
       description: "4 corse al giorno",
@@ -56,34 +59,8 @@ export default function AbbonamentiPage() {
     },
   ]
 
-  const handleSubscribe = async (planId: string) => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      router.push('/login')
-      return
-    }
-
-    try {
-      const response = await fetch('/api/subscriptions/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ planId })
-      })
-
-      if (response.ok) {
-        alert('Abbonamento sottoscritto con successo!')
-        router.push('/prenotazioni')
-      } else {
-        const data = await response.json()
-        alert(`Errore: ${data.message}`)
-      }
-    } catch (error) {
-      console.error('Errore durante la sottoscrizione dell\'abbonamento', error)
-      alert('Si è verificato un errore. Riprova più tardi.')
-    }
+  const handleSubscribe = (planId: string) => {
+    router.push(`/pagamento?planId=${planId}`)
   }
 
   if (!isAuthenticated) {
@@ -99,7 +76,7 @@ export default function AbbonamentiPage() {
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {plans.map((plan) => (
-            <Card key={plan.name} className="bg-zinc-900 border-zinc-800">
+            <Card key={plan.id} className="bg-zinc-900 border-zinc-800">
               <CardHeader>
                 <CardTitle className="text-2xl font-bold text-[#FF7F27]">{plan.name}</CardTitle>
                 <CardDescription className="text-white">{plan.description}</CardDescription>
@@ -120,7 +97,7 @@ export default function AbbonamentiPage() {
               <CardFooter>
                 <Button 
                   className="w-full bg-[#FF7F27] hover:bg-[#FF7F27]/90 text-white"
-                  onClick={() => handleSubscribe(plan.name.toLowerCase())}
+                  onClick={() => handleSubscribe(plan.id)}
                 >
                   Scegli {plan.name}
                 </Button>
