@@ -1,0 +1,13 @@
+mkdir .vercel
+cat > .vercel/project.json <<EOL
+{
+  "project": {
+    "settings": {
+      "framework": null,
+      "buildCommand": "npm install && npm run build",
+      "outputDirectory": "client/.next",
+      "rootDirectory": "client"
+    }
+  }
+}
+EOL
